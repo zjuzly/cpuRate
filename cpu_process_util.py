@@ -8,6 +8,8 @@ import psutil
 import sys
 import getopt
 
+import plot
+
 sysTime = 0 
 
 # argsLen = len(sys.argv)
@@ -17,12 +19,13 @@ procName = 'YNoteCefRender.exe'
 
 def usage():
     """
-    Usage: cpuRate.py -s -i -p -h
+    Usage: cpuRate.py -s -i -p -v -h
     
     Description
         -s, the interval of sampling system time or process time, in seconds
         -i, the count of sampling cpu usage 
         -p, the process name
+        -v, visualizing the cpu usage
         -h, help
 
     for example:
@@ -32,7 +35,8 @@ def usage():
 def run():
     global sleepTime, iterCount, procName
     try:
-        options, args = getopt.getopt(sys.argv[1:], "s:i:p:h")
+        v = False;
+        options, args = getopt.getopt(sys.argv[1:], "s:i:p:hv")
         for opt1, opt2 in options:
             if opt1 == '-s':
                 sleepTime = float(opt2)
@@ -40,12 +44,29 @@ def run():
                 iterCount = int(opt2)
             elif opt1 == '-p':
                 procName = str(opt2)
+            elif opt1 == '-v':
+                v = True       
             elif opt1 == '-h':
                 print(usage.__doc__)
                 return  
         calcCpuUsage()
     except:
         print(usage.__doc__)
+
+    if v:
+        fp = open('cpu_usage.txt')
+        lines = fp.readlines()
+        length = len(lines[0].strip().split(' '))
+        arrs = [None] * length 
+        lines = lines[1:]
+        for line in lines:
+            ratios = line.strip().split(' ')
+            for index in range(length):
+                arrs[index] = arrs[index] or []
+                arrs[index].append(float(ratios[index]))
+
+        fp.close()
+        plot.visualization(arrs)
 
 
 class FILETIME(Structure):
