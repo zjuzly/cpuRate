@@ -9,10 +9,10 @@ def visualization(arrs1, arrs2):
     pl.ylim(0, 100)
 
     for idx, arr in enumerate(arrs1):
-        pl.plot(arr, label='milestone ' + str(idx))
+        pl.plot(arr, label='proc ' + str(idx) + ' in ms')
 
     for idx, arr in enumerate(arrs2):
-        pl.plot(arr, label='online ' + str(idx))
+        pl.plot(arr, label='proc ' + str(idx) + ' in online')
 
     pl.legend()
     pl.show()

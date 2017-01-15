@@ -8,7 +8,7 @@ import psutil
 import sys
 import getopt
 
-import plot
+# import plot
 
 sysTime = 0 
 
@@ -53,20 +53,20 @@ def run():
     except:
         print(usage.__doc__)
 
-    if v:
-        fp = open('cpu_usage.txt')
-        lines = fp.readlines()
-        length = len(lines[0].strip().split(' '))
-        arrs = [None] * length 
-        lines = lines[1:]
-        for line in lines:
-            ratios = line.strip().split(' ')
-            for index in range(length):
-                arrs[index] = arrs[index] or []
-                arrs[index].append(float(ratios[index]))
+    #if v:
+    #    fp = open('cpu_usage.txt')
+    #    lines = fp.readlines()
+    #    length = len(lines[0].strip().split(' '))
+    #    arrs = [None] * length 
+    #    lines = lines[1:]
+    #    for line in lines:
+    #        ratios = line.strip().split(' ')
+    #        for index in range(length):
+    #            arrs[index] = arrs[index] or []
+    #            arrs[index].append(float(ratios[index]))
 
-        fp.close()
-        plot.visualization(arrs)
+    #    fp.close()
+    #    plot.visualization(arrs)
 
 
 class FILETIME(Structure):
