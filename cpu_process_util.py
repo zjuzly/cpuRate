@@ -8,11 +8,45 @@ import psutil
 import sys
 import getopt
 
-argsLen = len(sys.argv)
-sysTime = argsLen > 1 and sys.argv[1] or 0 
-sleepTime = argsLen > 2 and sys.argv[2] or 1
-iterCount = argsLen > 3 and sys.argv[3] or 10
-procName = argsLen > 4 and sys.argv[4] or 'YNoteCefRender.exe'
+sysTime = 0 
+
+# argsLen = len(sys.argv)
+sleepTime = 1
+iterCount = 10
+procName = 'YNoteCefRender.exe'
+
+def usage():
+    """
+    Usage: cpuRate.py -s -i -p -h
+    
+    Description
+        -s, the interval of sampling system time or process time, in seconds
+        -i, the count of sampling cpu usage 
+        -p, the process name
+        -h, help
+
+    for example:
+        python cpu_process_util.py -s 1 -i 10 -p YNoteCefRender.exe -h
+    """
+
+def run():
+    global sleepTime, iterCount, procName
+    try:
+        options, args = getopt.getopt(sys.argv[1:], "s:i:p:h")
+        for opt1, opt2 in options:
+            if opt1 == '-s':
+                sleepTime = float(opt2)
+            elif opt1 == '-i':
+                iterCount = int(opt2)
+            elif opt1 == '-p':
+                procName = str(opt2)
+            elif opt1 == '-h':
+                print(usage.__doc__)
+                return  
+        calcCpuUsage()
+    except:
+        print(usage.__doc__)
+
 
 class FILETIME(Structure):
     _fields_ = [
@@ -114,30 +148,33 @@ def cpu_process_util(PID):
 
         return (100 * proc_total_time) / sysTime
 
+def calcCpuUsage():
+    
+    cpu_utilization()
 
-cpu_utilization()
+    # PID = input("Enter a PID: ")
 
-# PID = input("Enter a PID: ")
+    fp = open('cpu_usage.txt', 'w')
 
-fp = open('cpu_usage.txt', 'w')
-
-processes = [proc for proc in psutil.process_iter()]
-processes = filter(myfilter, processes)
-pids = []
-for proc in processes:    
-    pids.append(str(proc.pid))
-
-fp.write(" ".join(pids) + "\n")
-
-for i in range(iterCount):
-    print('+--------------+')
     processes = [proc for proc in psutil.process_iter()]
     processes = filter(myfilter, processes)
-    cpu_usage = []
-    for proc in processes:
-        cpu_usage.append(str(cpu_process_util(proc.pid)))
-        print('PID: %d, usage: %s' % (proc.pid, cpu_usage[-1]))
-    print('+--------------+')
-    fp.write(" ".join(cpu_usage) + "\n")
+    pids = []
+    for proc in processes:    
+        pids.append(str(proc.pid))
 
-fp.close()
+    fp.write(" ".join(pids) + "\n")
+
+    for i in range(iterCount):
+        print('+--------------+')
+        processes = [proc for proc in psutil.process_iter()]
+        processes = filter(myfilter, processes)
+        cpu_usage = []
+        for proc in processes:
+            cpu_usage.append(str(cpu_process_util(proc.pid)))
+            print('PID: %d, usage: %s' % (proc.pid, cpu_usage[-1]))
+        print('+--------------+')
+        fp.write(" ".join(cpu_usage) + "\n")
+
+    fp.close()
+
+run()
