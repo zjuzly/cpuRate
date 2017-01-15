@@ -5,10 +5,14 @@ import win32process
 import win32con
 import time
 import psutil
+import sys
+import getopt
 
-sys = 0
-sleepTime = 0.5
-
+argsLen = len(sys.argv)
+sysTime = argsLen > 1 and sys.argv[1] or 0 
+sleepTime = argsLen > 2 and sys.argv[2] or 1
+iterCount = argsLen > 3 and sys.argv[3] or 10
+procName = argsLen > 4 and sys.argv[4] or 'YNoteCefRender.exe'
 
 class FILETIME(Structure):
     _fields_ = [
@@ -16,7 +20,7 @@ class FILETIME(Structure):
         ("dwHighDateTime", DWORD)]
 
 def myfilter(proc):
-    return proc.name() == 'YNoteCefRender.exe'
+    return procName == proc.name()
 
 
 def GetSystemTimes():
@@ -68,9 +72,9 @@ def cpu_utilization():
         # print(usr)
         # print(ker)
         
-        global sys
-        sys = usr + ker
-        return int((sys - idl) * 100 / sys)
+        global sysTime
+        sysTime = usr + ker
+        return int((sysTime - idl) * 100 / sysTime)
 
 def cpu_process_util(PID):
         """
@@ -105,20 +109,35 @@ def cpu_process_util(PID):
 
         proc_total_time = proc_usr + proc_ker
 
-        global sys
-        # print(sys)
+        global sysTime
+        # print(sysTime)
 
-        return (100 * proc_total_time) / sys
+        return (100 * proc_total_time) / sysTime
 
 
 cpu_utilization()
 
 # PID = input("Enter a PID: ")
 
-for index in range(10):
+fp = open('cpu_usage.txt', 'w')
+
+processes = [proc for proc in psutil.process_iter()]
+processes = filter(myfilter, processes)
+pids = []
+for proc in processes:    
+    pids.append(str(proc.pid))
+
+fp.write(" ".join(pids) + "\n")
+
+for i in range(iterCount):
     print('+--------------+')
     processes = [proc for proc in psutil.process_iter()]
     processes = filter(myfilter, processes)
+    cpu_usage = []
     for proc in processes:
-       print('PID: %d, usage: %f' % (proc.pid, cpu_process_util(proc.pid))) 
+        cpu_usage.append(str(cpu_process_util(proc.pid)))
+        print('PID: %d, usage: %s' % (proc.pid, cpu_usage[-1]))
     print('+--------------+')
+    fp.write(" ".join(cpu_usage) + "\n")
+
+fp.close()
