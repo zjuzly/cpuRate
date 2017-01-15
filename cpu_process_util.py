@@ -4,13 +4,20 @@ import win32api
 import win32process
 import win32con
 import time
+import psutil
 
 sys = 0
+sleepTime = 0.5
+
 
 class FILETIME(Structure):
     _fields_ = [
         ("dwLowDateTime", DWORD),
         ("dwHighDateTime", DWORD)]
+
+def myfilter(proc):
+    return proc.name() == 'YNoteCefRender.exe'
+
 
 def GetSystemTimes():
     """
@@ -44,7 +51,7 @@ def cpu_utilization():
         """
 
         FirstSystemTimes = GetSystemTimes()
-        time.sleep(10)
+        time.sleep(sleepTime)
         SecSystemTimes = GetSystemTimes()
 
         """
@@ -58,8 +65,8 @@ def cpu_utilization():
         ker = SecSystemTimes['kernelTime'] - FirstSystemTimes['kernelTime']
         idl = SecSystemTimes['idleTime'] - FirstSystemTimes['idleTime']
 
-        print(usr)
-        print(ker)
+        # print(usr)
+        # print(ker)
         
         global sys
         sys = usr + ker
@@ -77,7 +84,7 @@ def cpu_process_util(PID):
         proc = win32api.OpenProcess(win32con.PROCESS_ALL_ACCESS, False, PID)
 
         FirstProcessTimes = win32process.GetProcessTimes(proc)
-        time.sleep(10)
+        time.sleep(sleepTime)
         SecProcessTimes = win32process.GetProcessTimes(proc)
 
         """
@@ -99,12 +106,19 @@ def cpu_process_util(PID):
         proc_total_time = proc_usr + proc_ker
 
         global sys
-        print(sys)
+        # print(sys)
 
         return (100 * proc_total_time) / sys
 
 
 cpu_utilization()
 
-PID = input("Enter a PID: ")
-print(cpu_process_util(int(PID)))
+# PID = input("Enter a PID: ")
+
+for index in range(10):
+    print('+--------------+')
+    processes = [proc for proc in psutil.process_iter()]
+    processes = filter(myfilter, processes)
+    for proc in processes:
+       print('PID: %d, usage: %f' % (proc.pid, cpu_process_util(proc.pid))) 
+    print('+--------------+')
