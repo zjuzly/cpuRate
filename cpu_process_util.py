@@ -51,22 +51,7 @@ def run():
                 return  
         calcCpuUsage()
     except:
-        print(usage.__doc__)
-
-    #if v:
-    #    fp = open('cpu_usage.txt')
-    #    lines = fp.readlines()
-    #    length = len(lines[0].strip().split(' '))
-    #    arrs = [None] * length 
-    #    lines = lines[1:]
-    #    for line in lines:
-    #        ratios = line.strip().split(' ')
-    #        for index in range(length):
-    #            arrs[index] = arrs[index] or []
-    #            arrs[index].append(float(ratios[index]))
-
-    #    fp.close()
-    #    plot.visualization(arrs)
+      print(usage.__doc__)
 
 
 class FILETIME(Structure):
@@ -101,79 +86,87 @@ def GetSystemTimes():
         "userTime": userTime.dwLowDateTime}
 
 
-def cpu_utilization():
-        """
-        Returns the total cpu usage
-
-        Source: http://www.codeproject.com/Articles/9113/Get-CPU-Usage-with-GetSystemTimes
-        :return: CPU usage (int)
-        """
-
-        FirstSystemTimes = GetSystemTimes()
-        time.sleep(sleepTime)
-        SecSystemTimes = GetSystemTimes()
-
-        """
-         CPU usage is calculated by getting the total amount of time
-         the system has operated since the last measurement
-         made up of kernel + user) and the total
-         amount of time the process has run (kernel + user).
-        """
-
-        usr = SecSystemTimes['userTime'] - FirstSystemTimes['userTime']
-        ker = SecSystemTimes['kernelTime'] - FirstSystemTimes['kernelTime']
-        idl = SecSystemTimes['idleTime'] - FirstSystemTimes['idleTime']
-
-        # print(usr)
-        # print(ker)
-        
-        global sysTime
-        sysTime = usr + ker
-        return int((sysTime - idl) * 100 / sysTime)
-
-def cpu_process_util(PID):
+#def cpu_utilization():
+#        """
+#        Returns the total cpu usage
+#
+#        Source: http://www.codeproject.com/Articles/9113/Get-CPU-Usage-with-GetSystemTimes
+#        :return: CPU usage (int)
+#        """
+#
+#        FirstSystemTimes = GetSystemTimes()
+#        time.sleep(sleepTime)
+#        SecSystemTimes = GetSystemTimes()
+#
+#        """
+#         CPU usage is calculated by getting the total amount of time
+#         the system has operated since the last measurement
+#         made up of kernel + user) and the total
+#         amount of time the process has run (kernel + user).
+#        """
+#
+#        usr = SecSystemTimes['userTime'] - FirstSystemTimes['userTime']
+#        ker = SecSystemTimes['kernelTime'] - FirstSystemTimes['kernelTime']
+#        idl = SecSystemTimes['idleTime'] - FirstSystemTimes['idleTime']
+#
+#        # print(usr)
+#        # print(ker)
+#        
+#        global sysTime
+#        sysTime = usr + ker
+#        return int((sysTime - idl) * 100 / sysTime)
+#
+def cpu_process_util(pids):
         """
         Returns the process usage of CPU
 
         Source: http://www.philosophicalgeek.com/2009/01/03/determine-cpu-usage-of-current-process-c-and-c/
         :return: Process CPU usage (int)
         """
+        time.sleep(0.2)
+        length = len(pids)
+        proc = [None] * length
+        FirstProcessTimes = [None] * length
+        SecProcessTimes = [None] * length
+        cpu_usage = [None] * length 
 
-        # Creates a process handle
-        proc = win32api.OpenProcess(win32con.PROCESS_ALL_ACCESS, False, PID)
+        for idx, PID in enumerate(pids):
+            # Creates a process handle
+            proc[idx] = win32api.OpenProcess(win32con.PROCESS_ALL_ACCESS, False, PID)
+            FirstProcessTimes[idx] = win32process.GetProcessTimes(proc[idx])
 
-        FirstProcessTimes = win32process.GetProcessTimes(proc)
+        FirstSystemTimes = GetSystemTimes()
         time.sleep(sleepTime)
-        SecProcessTimes = win32process.GetProcessTimes(proc)
+        SecSystemTimes = GetSystemTimes()
+        
+        usr = SecSystemTimes['userTime'] - FirstSystemTimes['userTime']
+        ker = SecSystemTimes['kernelTime'] - FirstSystemTimes['kernelTime']
+        idl = SecSystemTimes['idleTime'] - FirstSystemTimes['idleTime']
+        sysTime = usr + ker
+      
+        for idx, PID in enumerate(pids):
+            # Creates a process handle
+            SecProcessTimes[idx] = win32process.GetProcessTimes(proc[idx])
 
-        """
-         Process CPU usage is calculated by getting the total amount of time
-         the system has operated since the last measurement
-         made up of kernel + user) and the total
-         amount of time the process has run (kernel + user).
-        """
+        for idx in range(length):
+            proc_time_user_prev = FirstProcessTimes[idx]['UserTime']
+            proc_time_kernel_prev = FirstProcessTimes[idx]['KernelTime']
+        
+            proc_time_user = SecProcessTimes[idx]['UserTime']
+            proc_time_kernel = SecProcessTimes[idx]['KernelTime']
 
-        proc_time_user_prev = FirstProcessTimes['UserTime']
-        proc_time_kernel_prev = FirstProcessTimes['KernelTime']
+            
+            proc_usr = proc_time_user - proc_time_user_prev
+            proc_ker = proc_time_kernel - proc_time_kernel_prev
 
-        proc_time_user = SecProcessTimes['UserTime']
-        proc_time_kernel = SecProcessTimes['KernelTime']
-
-        proc_usr = proc_time_user - proc_time_user_prev
-        proc_ker = proc_time_kernel - proc_time_kernel_prev
-
-        proc_total_time = proc_usr + proc_ker
-
-        global sysTime
-        # print(sysTime)
-
-        return (100 * proc_total_time) / sysTime
+            proc_total_time = proc_usr + proc_ker
+            cpu_usage[idx] = (100 * proc_total_time) / sysTime
+       
+        return cpu_usage
 
 def calcCpuUsage():
     
-    cpu_utilization()
-
-    # PID = input("Enter a PID: ")
+    # cpu_utilization()
 
     fp = open('cpu_usage.txt', 'w')
 
@@ -185,15 +178,20 @@ def calcCpuUsage():
 
     fp.write(" ".join(pids) + "\n")
 
+    i = 0
     for i in range(iterCount):
         print('+--------------+')
         processes = [proc for proc in psutil.process_iter()]
         processes = filter(myfilter, processes)
-        cpu_usage = []
+        pids = []
         for proc in processes:
-            cpu_usage.append(str(cpu_process_util(proc.pid)))
-            print('PID: %d, usage: %s' % (proc.pid, cpu_usage[-1]))
+            pids.append(proc.pid)
+            
+        cpu_usage = cpu_process_util(pids)
+        for idx, usage in enumerate(cpu_usage):
+            print('PID: %d, usage: %s' % (pids[idx], cpu_usage[idx]))
         print('+--------------+')
+        cpu_usage = map(lambda u: str(u), cpu_usage)
         fp.write(" ".join(cpu_usage) + "\n")
 
     fp.close()
