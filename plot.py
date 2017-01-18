@@ -18,7 +18,9 @@ def visualization(arrs1, arrs2):
         pl.plot(arr, label='proc ' + str(idx) + ' in online')
     
     ymajorLocator = MultipleLocator(5.0)
+    yminorLocator = MultipleLocator(2.0)
     ax.yaxis.set_major_locator(ymajorLocator)
+    ax.yaxis.set_minor_locator(yminorLocator)
 
     pl.legend()
     pl.show()
