@@ -1,1 +1,1 @@
-python cpu_process_util.py -s 1 -i 20 -p YNoteCefRender.exe
+python cpu_process_util.py -s 0.5 -i 200 -p YNoteCefRender.exe
