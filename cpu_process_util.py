@@ -32,24 +32,24 @@ def usage():
 
 def run():
     global sleepTime, iterCount, procName
-    # try:
-    v = False;
-    options, args = getopt.getopt(sys.argv[1:], "s:i:p:hv")
-    for opt1, opt2 in options:
-        if opt1 == '-s':
-            sleepTime = float(opt2)
-        elif opt1 == '-i':
-            iterCount = int(opt2)
-        elif opt1 == '-p':
-            procName = str(opt2)
-        elif opt1 == '-v':
-            v = True       
-        elif opt1 == '-h':
-            print(usage.__doc__)
-            return  
-    calcCpuUsage()
-    # except:
-    #   print(usage.__doc__)
+    try:
+    	v = False;
+    	options, args = getopt.getopt(sys.argv[1:], "s:i:p:hv")
+    	for opt1, opt2 in options:
+            if opt1 == '-s':
+            	sleepTime = float(opt2)
+       	    elif opt1 == '-i':
+            	iterCount = int(opt2)
+       	    elif opt1 == '-p':
+            	procName = str(opt2)
+            elif opt1 == '-v':
+            	v = True       
+            elif opt1 == '-h':
+            	print(usage.__doc__)
+            	return  
+    	calcCpuUsage()
+    except:
+      print(usage.__doc__)
 
 
 class FILETIME(Structure):
@@ -121,7 +121,7 @@ def cpu_process_util(pids):
         Source: http://www.philosophicalgeek.com/2009/01/03/determine-cpu-usage-of-current-process-c-and-c/
         :return: Process CPU usage (int)
         """
-        time.sleep(1)
+        time.sleep(0.5)
         length = len(pids)
         #proc = [None] * length
         FirstProcessTimes = [None] * length
