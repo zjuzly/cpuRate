@@ -8,14 +8,12 @@ import psutil
 import sys
 import getopt
 
-# import plot
 
 sysTime = 0 
-
-# argsLen = len(sys.argv)
 sleepTime = 1
 iterCount = 10
 procName = 'YNoteCefRender.exe'
+procArray = []
 
 def usage():
     """
@@ -34,24 +32,24 @@ def usage():
 
 def run():
     global sleepTime, iterCount, procName
-    try:
-        v = False;
-        options, args = getopt.getopt(sys.argv[1:], "s:i:p:hv")
-        for opt1, opt2 in options:
-            if opt1 == '-s':
-                sleepTime = float(opt2)
-            elif opt1 == '-i':
-                iterCount = int(opt2)
-            elif opt1 == '-p':
-                procName = str(opt2)
-            elif opt1 == '-v':
-                v = True       
-            elif opt1 == '-h':
-                print(usage.__doc__)
-                return  
-        calcCpuUsage()
-    except:
-      print(usage.__doc__)
+    # try:
+    v = False;
+    options, args = getopt.getopt(sys.argv[1:], "s:i:p:hv")
+    for opt1, opt2 in options:
+        if opt1 == '-s':
+            sleepTime = float(opt2)
+        elif opt1 == '-i':
+            iterCount = int(opt2)
+        elif opt1 == '-p':
+            procName = str(opt2)
+        elif opt1 == '-v':
+            v = True       
+        elif opt1 == '-h':
+            print(usage.__doc__)
+            return  
+    calcCpuUsage()
+    # except:
+    #   print(usage.__doc__)
 
 
 class FILETIME(Structure):
@@ -125,15 +123,15 @@ def cpu_process_util(pids):
         """
         time.sleep(0.2)
         length = len(pids)
-        proc = [None] * length
+        #proc = [None] * length
         FirstProcessTimes = [None] * length
         SecProcessTimes = [None] * length
         cpu_usage = [None] * length 
-
+        
+        global procArray
         for idx, PID in enumerate(pids):
-            # Creates a process handle
-            proc[idx] = win32api.OpenProcess(win32con.PROCESS_ALL_ACCESS, False, PID)
-            FirstProcessTimes[idx] = win32process.GetProcessTimes(proc[idx])
+            # proc[idx] = win32api.OpenProcess(win32con.PROCESS_ALL_ACCESS, False, PID)
+            FirstProcessTimes[idx] = win32process.GetProcessTimes(procArray[idx])
 
         FirstSystemTimes = GetSystemTimes()
         time.sleep(sleepTime)
@@ -143,10 +141,9 @@ def cpu_process_util(pids):
         ker = SecSystemTimes['kernelTime'] - FirstSystemTimes['kernelTime']
         idl = SecSystemTimes['idleTime'] - FirstSystemTimes['idleTime']
         sysTime = usr + ker
-      
+        
         for idx, PID in enumerate(pids):
-            # Creates a process handle
-            SecProcessTimes[idx] = win32process.GetProcessTimes(proc[idx])
+            SecProcessTimes[idx] = win32process.GetProcessTimes(procArray[idx])
 
         for idx in range(length):
             proc_time_user_prev = FirstProcessTimes[idx]['UserTime']
@@ -174,9 +171,16 @@ def calcCpuUsage():
     processes = filter(myfilter, processes)
     pids = []
     for proc in processes:    
-        pids.append(str(proc.pid))
+        pids.append(proc.pid)
 
-    fp.write(" ".join(pids) + "\n")
+    fp.write(" ".join(map(lambda pid: str(pid), pids)) + "\n")
+    fp.flush()
+ 
+    global procArray
+    procArray = [None] * len(pids)
+    for idx, PID in enumerate(pids):
+        # Creates a process handle
+        procArray[idx] = win32api.OpenProcess(win32con.PROCESS_ALL_ACCESS, False, PID)
 
     i = 0
     for i in range(iterCount):
