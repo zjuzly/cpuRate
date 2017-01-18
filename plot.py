@@ -1,5 +1,7 @@
 import numpy as np
 import pylab as pl
+from matplotlib.ticker import MultipleLocator
+from matplotlib.ticker import FormatStrFormatter
 
 def visualization(arrs1, arrs2): 
     pl.title('cpu usage')
@@ -7,12 +9,16 @@ def visualization(arrs1, arrs2):
     pl.xlabel('x axis')
 
     pl.ylim(0, 100)
-
+    
+    ax = pl.subplot(111)
     for idx, arr in enumerate(arrs1):
         pl.plot(arr, label='proc ' + str(idx) + ' in ms')
 
     for idx, arr in enumerate(arrs2):
         pl.plot(arr, label='proc ' + str(idx) + ' in online')
+    
+    ymajorLocator = MultipleLocator(5.0)
+    ax.yaxis.set_major_locator(ymajorLocator)
 
     pl.legend()
     pl.show()
