@@ -161,7 +161,7 @@ def cpu_process_util(pids):
 
             proc_total_time = proc_usr + proc_ker
             cpu_usage[idx] = (100 * proc_total_time) / sysTime
-       
+        # return max(cpu_usage)
         return cpu_usage
 
 def calcCpuUsage():
@@ -188,11 +188,19 @@ def calcCpuUsage():
             pids.append(proc.pid)
             
         cpu_usage = cpu_process_util(pids)
+        maxUsage = 0
+        maxPid = -1
         for idx, usage in enumerate(cpu_usage):
-            print('PID: %d, usage: %s' % (pids[idx], cpu_usage[idx]))
+            if maxUsage < usage:
+                maxUsage = usage
+                maxPid = pids[idx]
+        # for idx, usage in enumerate(cpu_usage):
+            # print('PID: %d, usage: %s' % (pids[idx], cpu_usage[idx]))
+        print('PID: %d, usage: %s' % (maxPid, maxUsage))
         print('+--------------+')
-        cpu_usage = map(lambda u: str(u), cpu_usage)
-        fp.write(" ".join(cpu_usage) + "\n")
+        # cpu_usage = map(lambda u: str(u), cpu_usage)
+        # fp.write(" ".join(cpu_usage) + "\n")
+        fp.write(str(maxUsage) + "\n")
 
     fp.close()
 
