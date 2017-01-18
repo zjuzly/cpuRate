@@ -121,7 +121,7 @@ def cpu_process_util(pids):
         Source: http://www.philosophicalgeek.com/2009/01/03/determine-cpu-usage-of-current-process-c-and-c/
         :return: Process CPU usage (int)
         """
-        time.sleep(0.2)
+        time.sleep(1)
         length = len(pids)
         #proc = [None] * length
         FirstProcessTimes = [None] * length

@@ -20,7 +20,7 @@ def visualization(arrs1, arrs2):
 def parseData(lines):
     length = len(lines[0].strip().split(' '))
     arrs = [None] * length 
-    lines = lines[1:]
+    # lines = lines[1:]
     for line in lines:
         ratios = line.strip().split(' ')
         print(ratios)
